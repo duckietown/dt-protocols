@@ -10,8 +10,13 @@ from zuper_nodes import InteractionProtocol
 from zuper_nodes_wrapper.wrapper_outside import ComponentInterface
 
 
-def run_checker(cie: dc.ChallengeInterfaceEvaluator, protocol: InteractionProtocol, dirname: str,
-                scoring: Callable, finalize_scores: Callable):
+def run_checker(
+    cie: dc.ChallengeInterfaceEvaluator,
+    protocol: InteractionProtocol,
+    dirname: str,
+    scoring: Callable,
+    finalize_scores: Callable,
+):
     agent_ci = ComponentInterface(
         fnin="/fifos/checker-in",
         fnout="/fifos/checker-out",
@@ -25,9 +30,9 @@ def run_checker(cie: dc.ChallengeInterfaceEvaluator, protocol: InteractionProtoc
         # noinspection PyProtectedMember
         agent_ci._get_node_protocol()
 
-        K_params = protocol.inputs['set_params']
-        K_query = protocol.inputs['query']
-        K_response = protocol.inputs['response']
+        K_params = protocol.inputs["set_params"]
+        K_query = protocol.inputs["query"]
+        K_response = protocol.outputs["response"]
 
         @dataclass
         class Interaction:
@@ -39,7 +44,7 @@ def run_checker(cie: dc.ChallengeInterfaceEvaluator, protocol: InteractionProtoc
             params: K_params
             interactions: List[Interaction]
 
-        a = locate_files(dirname, '*.tests.yaml')
+        a = locate_files(dirname, "*.tests.yaml")
         scores = []
         for fn in a:
             data = read_ustring_from_utf8_file(fn)
