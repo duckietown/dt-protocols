@@ -12,3 +12,4 @@ minimal-nodes-stubs/res1.cbor
 minimal-nodes-stubs/res2.cbor
 test
 *.cbor
+errors
