@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from aido_schemas import Context
 from dt_protocols import CollisionCheckQuery, CollisionCheckResult, MapDefinition
 

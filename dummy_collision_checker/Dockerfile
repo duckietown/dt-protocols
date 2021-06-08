@@ -12,4 +12,6 @@ RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
 COPY . .
 
+RUN node-launch --help
+
 ENTRYPOINT ["node-launch", "--node", "dummy_image_filter.DummyCollisionChecker", "--protocol", "dt_protocols.protocol_collision_checking"]
