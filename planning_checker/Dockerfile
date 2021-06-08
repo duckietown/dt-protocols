@@ -14,4 +14,4 @@ RUN  pip3 install --use-feature=2020-resolver -r .requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["python3", "planning_checker.py"]
+ENTRYPOINT ["python3", "planning_checker.py", "--dirname", "dataset"]

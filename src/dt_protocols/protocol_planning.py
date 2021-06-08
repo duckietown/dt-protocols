@@ -49,7 +49,7 @@ class CollisionCheckResult:
 
 protocol_collision_checking = InteractionProtocol(
     description="""Collision checking protocol""",
-    inputs={"set_map": MapDefinition, "query": CollisionCheckQuery},
+    inputs={"set_params": MapDefinition, "query": CollisionCheckQuery},
     outputs={"response": CollisionCheckResult},
     language="""
         (in:set_map ; (in:query ; out:response)*)*
