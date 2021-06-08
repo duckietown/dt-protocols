@@ -55,7 +55,8 @@ def run_checker(
             for interaction in inside.interactions:
                 q = interaction.query
                 r = interaction.response
-                response = agent_ci.write_topic_and_expect("query", q, expect="response")
+                msg = agent_ci.write_topic_and_expect("query", q, expect="response")
+                response = msg.data
                 scores.append(scoring(r, response))
 
         final_scores = finalize_scores(scores)
