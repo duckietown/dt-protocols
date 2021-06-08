@@ -33,5 +33,7 @@ setup(
     package_dir={"": "src"},
     packages=["dt_protocols"],
     install_requires=install_requires,
-    entry_points={"console_scripts": [],},
+    entry_points={
+        "console_scripts": [],
+    },
 )

@@ -5,8 +5,15 @@ from zuper_typing import dataclass
 from aido_schemas import FriendlyPose
 from .basics import InteractionProtocol
 
-__all__ = ["protocol_collision_checking", "Circle", 'Rectangle', 'Primitive', 'MapDefinition',
-           'CollisionCheckQuery', 'CollisionCheckResult']
+__all__ = [
+    "protocol_collision_checking",
+    "Circle",
+    "Rectangle",
+    "Primitive",
+    "MapDefinition",
+    "CollisionCheckQuery",
+    "CollisionCheckResult",
+]
 
 if TYPE_CHECKING:
     from dataclasses import dataclass
