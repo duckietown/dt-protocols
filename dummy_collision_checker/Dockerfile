@@ -14,4 +14,4 @@ COPY . .
 
 RUN node-launch --help
 
-ENTRYPOINT ["node-launch", "--node", "dummy_image_filter.DummyCollisionChecker", "--protocol", "dt_protocols.protocol_collision_checking"]
+ENTRYPOINT ["node-launch", "--node", "dummy_collision_checker.DummyCollisionChecker", "--protocol", "dt_protocols.protocol_collision_checking"]

@@ -1,7 +1,6 @@
-from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import List, Optional, TYPE_CHECKING, Union
 
-from typing_extensions import Literal
+from zuper_typing import dataclass
 
 from aido_schemas import FriendlyPose
 from .basics import InteractionProtocol
@@ -9,10 +8,12 @@ from .basics import InteractionProtocol
 __all__ = ["protocol_collision_checking", "Circle", 'Rectangle', 'Primitive', 'MapDefinition',
            'CollisionCheckQuery', 'CollisionCheckResult']
 
+if TYPE_CHECKING:
+    from dataclasses import dataclass
+
 
 @dataclass
 class Circle:
-    # primitive: Literal['circle'] = 'circle'
     x: float
     y: float
     radius: float
@@ -20,7 +21,6 @@ class Circle:
 
 @dataclass
 class Rectangle:
-    # primitive: Literal['rectangle']
     xmin: float
     ymin: float
     xmax: float
