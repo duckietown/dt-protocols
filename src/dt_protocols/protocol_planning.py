@@ -12,7 +12,7 @@ __all__ = ["protocol_collision_checking", "Circle", 'Rectangle', 'Primitive', 'M
 
 @dataclass
 class Circle:
-    primitive: Literal['circle']
+    # primitive: Literal['circle'] = 'circle'
     x: float
     y: float
     radius: float
@@ -20,7 +20,7 @@ class Circle:
 
 @dataclass
 class Rectangle:
-    primitive: Literal['rectangle']
+    # primitive: Literal['rectangle']
     xmin: float
     ymin: float
     xmax: float

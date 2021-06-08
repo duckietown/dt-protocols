@@ -37,6 +37,6 @@ steps:
         solution:
           image: SUBMISSION_CONTAINER
           environment:
-            AIDONODE_DATA_IN: /fifos/predictor-in
-            AIDONODE_DATA_OUT: fifo:/fifos/predictor-out
+            AIDONODE_DATA_IN: /fifos/checker-in
+            AIDONODE_DATA_OUT: fifo:/fifos/checker-out
 

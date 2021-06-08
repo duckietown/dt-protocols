@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-
+from typing import List
 
 import numpy as np
 
 import duckietown_challenges as dc
-from dt_protocols import protocol_collision_checking
-from zuper_nodes_wrapper.wrapper_outside import ComponentInterface, MsgReceived
+from aido_schemas import FriendlyPose
+from dt_protocols import (Circle, CollisionCheckQuery, logger, MapDefinition, Primitive,
+                          protocol_collision_checking)
+from zuper_nodes_wrapper.wrapper_outside import ComponentInterface
 
 
 def get_time_series(N):
@@ -17,10 +19,10 @@ def get_time_series(N):
 
 def main(cie: dc.ChallengeInterfaceEvaluator):
     agent_ci = ComponentInterface(
-        fnin="/fifos/predictor-in",
-        fnout="/fifos/predictor-out",
+        fnin="/fifos/checker-in",
+        fnout="/fifos/checker-out",
         expect_protocol=protocol_collision_checking,
-        nickname="predictor",
+        nickname="checker",
     )
 
     # check compatibility so that everything
@@ -28,45 +30,20 @@ def main(cie: dc.ChallengeInterfaceEvaluator):
     # noinspection PyProtectedMember
     agent_ci._get_node_protocol()
 
+    environment: List[Primitive] = [
+        Circle(x=1, y=2, radius=1)
+    ]
+    body = Circle(x=1, y=2, radius=1)
+    map_definition = MapDefinition(environment, body)
+
     try:
-        seed = 42
-        agent_ci.write_topic_and_expect_zero("seed", seed)
-
-        N = 100
-        N_training = int(N / 2)
-
-        values = get_time_series(200)
-
-        values_training = values[:N_training]
-        values_test = values[N_training:]
-        for value in values_training:
-            agent_ci.write_topic_and_expect_zero("observations", value)
-
-        guess = []
-        truth = []
-        for value in values_test:
-            msg_prediction: MsgReceived[float] = agent_ci.write_topic_and_expect(
-                "get_prediction", None, expect="prediction"
-            )
-
-            guess.append(msg_prediction.data)
-
-            truth.append(value)
-            agent_ci.write_topic_and_expect_zero("observations", value)
-
-        truth = np.array(truth)
-        guess = np.array(guess)
-        cie.info("truth: %s" % truth)
-        cie.info("guess: %s" % guess)
-
-        error_L1 = np.mean(np.abs(truth - guess))
-        error_L2 = np.mean(np.power(truth - guess, 2))
-
-        cie.set_score("error_L1", error_L1)
-        cie.set_score("error_L2", error_L2)
-
-        # cid = "QmUNeebf5AxDmhhEVaoz9dKWkS4n1djHsf765aZdW1ubgP"
-        # cie.set_evaluation_ipfs_hash("logs", cid)
+        pose = FriendlyPose(0.0, 0.0, 90.0)
+        query = CollisionCheckQuery(pose=pose)
+        agent_ci.write_topic_and_expect_zero("set_map", map_definition)
+        response = agent_ci.write_topic_and_expect("query", query, expect="response")
+        logger.info(response=response)
+        performance = 0.1
+        cie.set_score("performance", performance)
     except dc.InvalidSubmission:
         raise
     except BaseException as e:

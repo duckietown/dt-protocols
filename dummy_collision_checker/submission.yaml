@@ -1,7 +1,7 @@
 
 
 protocol: protocol_collision_checking-1
-
+challenge: mooc-collision-check
 user-label: "dummy_collision_checker"
 user-payload: {}
 description: |
