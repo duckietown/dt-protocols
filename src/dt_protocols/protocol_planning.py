@@ -1,4 +1,4 @@
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import List, TYPE_CHECKING, Union
 
 from zuper_typing import dataclass
 
@@ -51,7 +51,6 @@ class CollisionCheckQuery:
 @dataclass
 class CollisionCheckResult:
     collision: bool
-    distance: Optional[float]
 
 
 protocol_collision_checking = InteractionProtocol(
