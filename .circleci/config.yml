@@ -1,0 +1,131 @@
+version: 2
+workflows:
+  version: 2
+  test:
+    jobs:
+      - test-3.8:
+          context: pip-staging
+      - test-3.7:
+          context: pip-staging
+      #- test-3.6
+jobs:
+  test-3.6: &test-template
+    environment:
+      COLUMNS: 160
+      # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    docker:
+      - image: python:3.6
+    working_directory: ~/repo
+    steps:
+      - checkout
+      - run:
+          name: Install Git LFS
+          command: |
+            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
+            apt-get update
+            apt-get install -y git-lfs openssh-client
+            git lfs install
+            mkdir -p ~/.ssh
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            ssh git@github.com git-lfs-authenticate "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" download
+            git lfs pull
+      - run:
+          name: Install deps
+          command: |
+            echo PATH=$PATH
+            pip install -q --user --upgrade -r requirements.txt
+
+      - run:
+          name: List deps
+          command: |
+            mkdir -p artifacts
+            pip freeze | tee artifacts/pip-freeze.txt
+
+      - run:
+          name: setup.py develop
+          command: |
+            python setup.py develop --prefix ~/.local --no-deps
+
+      - run:
+          name: Run tests
+          command: |
+            make tests-coverage-single-nocontracts
+
+      - run:
+          name: Notebooks
+          command: |
+            make -C notebooks || true
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="18.09.2"
+            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
+            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            mv /tmp/docker/* /usr/bin
+      - run:
+          name: Install Docker Compose
+          command: |
+            curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            chmod +x ~/docker-compose
+            mv ~/docker-compose /usr/local/bin/docker-compose
+
+      - setup_remote_docker
+
+      - run:
+          name: Build docker example
+          command: |
+            find minimal-nodes-stubs
+            make -C minimal-nodes-stubs test-docker-build
+      - run:
+          name: Run docker example
+          command: |
+            make -C minimal-nodes-stubs test-docker-up
+
+      - run:
+          name: Coverage analysis
+          when: always
+          command: |
+            make coverage-report
+
+      - run:
+          name: Coveralls submission
+          when: always
+          command: |
+            make coverage-coveralls
+
+      - run:
+          name: Create JUnit output
+          when: always
+          command: |
+            make junit
+
+      - test-results-store:
+          path: out-comptests/junit
+
+      - store_artifacts:
+          path: out-comptests/duckietown_world_tests
+          destination: duckietown_world_tests
+
+      - store_artifacts:
+          path: artifacts
+          destination: artifacts
+
+      - store_artifacts:
+          path: out_coverage
+          destination: coverage
+
+      - store_artifacts:
+          path: notebooks
+          destination: notebooks
+
+  test-3.7:
+    <<: *test-template
+    docker:
+      - image: python:3.7
+
+  test-3.8:
+    <<: *test-template
+    docker:
+      - image: python:3.8

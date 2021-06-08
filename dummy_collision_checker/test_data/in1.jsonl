@@ -1,0 +1,2 @@
+{ "compat": ["z2"], "topic": "set_map", "data": { "environment": [ { "primitive": "circle", "x": 1.0, "y": 0.2, "radius": 1.0 } ], "body": { "primitive": "circle", "x": 0.2, "y": 0.2, "radius": 1.0 } } }
+{"compat": ["z2"],"topic": "query", "data": { "pose": { "x": 0.0, "y": 0.0, "theta_deg": 0.0 } } }

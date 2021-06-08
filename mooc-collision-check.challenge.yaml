@@ -1,0 +1,42 @@
+challenge: mooc-collision-check
+
+title: "Collision checking"
+tags: ["validation", "v4", "z2", "visible"]
+description: |
+  Collision checking
+
+protocol: protocol_collision_checking-1
+
+date-open: 2021-06-06T00:00
+date-close: 2028-12-07T00:00
+
+
+scoring:
+  scores:
+
+  - name: performance
+    short: Percentage success
+    description: |
+      Performance score
+    order: higher-is-better
+    discretization: 0.01
+
+
+steps:
+  step1:
+    title: Step 1
+    description: ""
+
+    timeout: 120
+    evaluation_parameters:
+      services:
+        evaluator:
+          build:
+            context: ./planning_checker
+
+        solution:
+          image: SUBMISSION_CONTAINER
+          environment:
+            AIDONODE_DATA_IN: /fifos/predictor-in
+            AIDONODE_DATA_OUT: fifo:/fifos/predictor-out
+

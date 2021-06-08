@@ -1,0 +1,14 @@
+__pycache__
+*egg-info
+.registers
+.coverage
+out-comptests
+l.dot
+out*json
+language.dot
+dist
+minimal-nodes-stubs/res.json
+minimal-nodes-stubs/res1.cbor
+minimal-nodes-stubs/res2.cbor
+test
+*.cbor

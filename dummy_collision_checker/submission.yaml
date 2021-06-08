@@ -1,0 +1,9 @@
+
+
+protocol: protocol_collision_checking-1
+
+user-label: "dummy_collision_checker"
+user-payload: {}
+description: |
+  Empty checker
+
