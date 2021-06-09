@@ -6,7 +6,7 @@ from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
 from zuper_ipce import object_from_ipce
 
 import duckietown_challenges as dc
-from zuper_nodes import InteractionProtocol
+from zuper_nodes import IncompatibleProtocol, InteractionProtocol
 from zuper_nodes_wrapper.wrapper_outside import ComponentInterface
 
 
@@ -28,7 +28,11 @@ def run_checker(
         # check compatibility so that everything
         # fails gracefully in case of error
         # noinspection PyProtectedMember
-        agent_ci._get_node_protocol()
+        try:
+            agent_ci._get_node_protocol()
+        except IncompatibleProtocol as e:
+            msg = "Invalid protocol"
+            raise dc.InvalidSubmission(msg) from e
 
         K_params = protocol.inputs["set_params"]
         K_query = protocol.inputs["query"]

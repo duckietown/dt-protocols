@@ -20,7 +20,7 @@ def main():
         return 1 if gt.collision == given.collision else 0
 
     def finalize_scores(x):
-        return np.mean(x)
+        return {"performance": np.mean(x)}
 
     with dc.scoring_context() as _:
         run_checker(
