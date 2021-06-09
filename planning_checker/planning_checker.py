@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+from dataclasses import dataclass
+from typing import List, Mapping
 
 import numpy as np
 
@@ -16,15 +18,25 @@ def main():
 
     dirname = parsed.dirname
 
-    def scoring(gt: CollisionCheckResult, given: CollisionCheckResult):
-        return 1 if gt.collision == given.collision else 0
+    @dataclass
+    class Intermediate:
+        res: int
 
-    def finalize_scores(x):
-        return {"performance": np.mean(x)}
+    def scoring(gt: CollisionCheckResult, given: CollisionCheckResult) -> Intermediate:
+        res = 1 if gt.collision == given.collision else 0
+        return Intermediate(res)
+
+    def finalize_scores(x: List[Intermediate]) -> Mapping[str, float]:
+        return {"performance": float(np.mean(x))}
 
     with dc.scoring_context() as _:
         run_checker(
-            _, protocol_collision_checking, dirname=dirname, scoring=scoring, finalize_scores=finalize_scores
+            _,
+            protocol_collision_checking,
+            dirname=dirname,
+            K=CollisionCheckResult,
+            scoring=scoring,
+            finalize_scores=finalize_scores,
         )
 
 

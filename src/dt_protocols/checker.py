@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import Any, Callable, List, Mapping, Type, TypeVar
 
 import yaml
 from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
@@ -9,13 +9,20 @@ import duckietown_challenges as dc
 from zuper_nodes import IncompatibleProtocol, InteractionProtocol
 from zuper_nodes_wrapper.wrapper_outside import ComponentInterface
 
+__all__ = ["run_checker"]
+
+Y = TypeVar("Y")
+S = TypeVar("S")
+
 
 def run_checker(
     cie: dc.ChallengeInterfaceEvaluator,
     protocol: InteractionProtocol,
+    *,
     dirname: str,
-    scoring: Callable,
-    finalize_scores: Callable,
+    K: Type[Y],
+    scoring: Callable[[Y, Any], S],
+    finalize_scores: Callable[[List[S]], Mapping[str, float]],
 ):
     agent_ci = ComponentInterface(
         fnin="/fifos/checker-in",
@@ -36,12 +43,13 @@ def run_checker(
 
         K_params = protocol.inputs["set_params"]
         K_query = protocol.inputs["query"]
-        K_response = protocol.outputs["response"]
+
+        # K_response = protocol.outputs["response"]
 
         @dataclass
         class Interaction:
             query: K_query
-            response: K_response
+            gt: K
 
         @dataclass
         class Data:
@@ -58,7 +66,7 @@ def run_checker(
             agent_ci.write_topic_and_expect_zero("set_params", inside.params)
             for interaction in inside.interactions:
                 q = interaction.query
-                r = interaction.response
+                r = interaction.gt
                 msg = agent_ci.write_topic_and_expect("query", q, expect="response")
                 response = msg.data
                 scores.append(scoring(r, response))

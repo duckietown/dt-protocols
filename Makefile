@@ -83,4 +83,4 @@ black:
 
 
 define-challenge:
-	dts challenges define --config mooc-collision-check.challenge.yaml
+	dts challenges define --config mooc-collision-check.challenge.yaml --no-cache

@@ -15,12 +15,12 @@ interactions:
       x: 0.1
       y: 0.0
       theta_deg: 120.0
-  response:
+  gt:
     collision: true
 - query:
     pose:
       x: -0.1
       y: 0.0
       theta_deg: 90.0
-  response:
+  gt:
     collision: false
