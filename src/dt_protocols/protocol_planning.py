@@ -13,6 +13,7 @@ __all__ = [
     "MapDefinition",
     "CollisionCheckQuery",
     "CollisionCheckResult",
+    "PlacedPrimitive",
 ]
 
 if TYPE_CHECKING:
@@ -21,9 +22,13 @@ if TYPE_CHECKING:
 
 @dataclass
 class Circle:
+    radius: float
+
+
+@dataclass
+class Point:
     x: float
     y: float
-    radius: float
 
 
 @dataclass
@@ -38,9 +43,15 @@ Primitive = Union[Circle, Rectangle]
 
 
 @dataclass
+class PlacedPrimitive:
+    pose: FriendlyPose
+    primitive: Primitive
+
+
+@dataclass
 class MapDefinition:
-    environment: List[Primitive]
-    body: Primitive
+    environment: List[PlacedPrimitive]
+    body: List[PlacedPrimitive]
 
 
 @dataclass
