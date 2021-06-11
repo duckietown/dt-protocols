@@ -24,6 +24,7 @@ install_requires = [
     "aido-protocols-daffy",
     "termcolor",
     "zuper-nodes-z6>=6.0.37",
+    "PyGeometry-z6",
 ]
 
 setup(
