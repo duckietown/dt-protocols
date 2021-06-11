@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, Callable, List, Mapping, Type, TypeVar
-
+from . import logger
 import yaml
 from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
 from zuper_ipce import object_from_ipce
@@ -62,7 +62,7 @@ def run_checker(
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
             inside = object_from_ipce(ydata, Data)
-
+            logger.indo(fn=fn, inside=inside)
             agent_ci.write_topic_and_expect_zero("set_params", inside.params)
             for interaction in inside.interactions:
                 q = interaction.query

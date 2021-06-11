@@ -14,6 +14,7 @@ __all__ = [
     "CollisionCheckQuery",
     "CollisionCheckResult",
     "PlacedPrimitive",
+    "Point",
 ]
 
 if TYPE_CHECKING:
