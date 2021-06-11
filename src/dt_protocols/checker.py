@@ -6,7 +6,13 @@ from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
 from zuper_ipce import object_from_ipce
 
 import duckietown_challenges as dc
-from zuper_nodes import IncompatibleProtocol, InteractionProtocol
+from zuper_nodes import (
+    ExternalNodeDidNotUnderstand,
+    ExternalProtocolViolation,
+    IncompatibleProtocol,
+    InteractionProtocol,
+    RemoteNodeAborted,
+)
 from zuper_nodes_wrapper.wrapper_outside import ComponentInterface
 
 __all__ = ["run_checker"]
@@ -75,6 +81,10 @@ def run_checker(
 
         for k, v in final_scores.items():
             cie.set_score(k, v)
+
+    except ExternalProtocolViolation as e:
+        msg = "The remote node has violated protocol"
+        raise dc.InvalidSubmission(msg) from e
     except dc.InvalidSubmission:
         raise
     except BaseException as e:
