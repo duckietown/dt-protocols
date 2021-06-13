@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Callable, List, Mapping, Type, TypeVar
+from typing import Any, Callable, Dict, List, Mapping, Type, TypeVar
 
 import yaml
 from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
@@ -20,6 +20,12 @@ Y = TypeVar("Y")
 S = TypeVar("S")
 
 
+@dataclass
+class CheckerSession:
+    dataset: object
+    scores: List
+    responses: List
+
 def run_checker(
     cie: dc.ChallengeInterfaceEvaluator,
     protocol: InteractionProtocol,
@@ -28,7 +34,7 @@ def run_checker(
     K: Type[Y],
     scoring: Callable[[Y, Any], S],
     finalize_scores: Callable[[List[S]], Mapping[str, float]],
-):
+) -> Dict[str, CheckerSession]:
     agent_ci = ComponentInterface(
         fnin="/fifos/checker-in",
         fnout="/fifos/checker-out",
@@ -63,6 +69,8 @@ def run_checker(
 
         a = locate_files(dirname, "*.tests.yaml")
         scores = []
+        responses = []
+        episodes = {}
         for fn in a:
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
@@ -74,8 +82,10 @@ def run_checker(
                 r = interaction.gt
                 msg = agent_ci.write_topic_and_expect("query", q, expect="response")
                 response = msg.data
-                scores.append(scoring(r, response))
+                scores.append(scoring( r, response))
+                responses.append(response)
 
+            episodes[fn] = CheckerSession(dataset=inside, scores=scores, responses=responses)
         final_scores = finalize_scores(scores)
 
         for k, v in final_scores.items():
@@ -91,3 +101,6 @@ def run_checker(
 
     finally:
         agent_ci.close()
+
+    return episodes
+
