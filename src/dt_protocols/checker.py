@@ -55,7 +55,6 @@ def run_checker(
         K_params = protocol.inputs["set_params"]
         K_query = protocol.inputs["query"]
 
-        # K_response = protocol.outputs["response"]
 
         @dataclass
         class Interaction:
