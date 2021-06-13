@@ -25,6 +25,7 @@ install_requires = [
     "termcolor",
     "zuper-nodes-z6>=6.0.37",
     "PyGeometry-z6",
+    "duckietown-world-daffy",
 ]
 
 setup(
