@@ -75,7 +75,7 @@ def run_checker(
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
             inside = object_from_ipce(ydata, Data)
-            logger.info(fn=fn, inside=inside)
+            logger.info(fn=fn)
             agent_ci.write_topic_and_expect_zero("set_params", inside.params)
             for interaction in inside.interactions:
                 q = interaction.query
