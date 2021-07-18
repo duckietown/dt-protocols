@@ -13,11 +13,15 @@ __all__ = ["plot_geometry"]
 
 
 # noinspection PyListCreation
-def plot_geometry(ax, se0: SE2value, structure: List[PlacedPrimitive], style, zorder: int):
+def plot_geometry(ax, se0: SE2value, structure: List[PlacedPrimitive], style, zorder: int, text: str = None ):
     from matplotlib import pyplot
 
     ax: pyplot.Axes
     for pp in structure:
+        if text is not None:
+            x, y = pp.pose.x, pp.pose.y
+            x, y = SE2_apply_R2(se0, (x, y))
+            ax.add_artist(pyplot.Text(text=text, x=x, y=y, zorder=zorder + 1))
         if isinstance(pp.primitive, Circle):
             x, y = pp.pose.x, pp.pose.y
             x, y = SE2_apply_R2(se0, (x, y))

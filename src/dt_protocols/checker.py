@@ -67,10 +67,12 @@ def run_checker(
             interactions: List[Interaction]
 
         a = locate_files(dirname, "*.tests.yaml")
+        a = sorted(a)
         scores = []
-        responses = []
+
         episodes = {}
         for fn in a:
+            responses = []
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
             inside = object_from_ipce(ydata, Data)
