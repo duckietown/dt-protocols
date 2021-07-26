@@ -1,4 +1,4 @@
 
 #
 dt-protocols-daffy
-zuper-nodes-z6 # tmp
+zuper-nodes-z6>=6.2.4 # tmp

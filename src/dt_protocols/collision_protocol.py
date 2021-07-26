@@ -18,8 +18,11 @@ __all__ = [
     "CollisionCheckResult",
     "PlacedPrimitive",
     "Point",
-    "PlanningQuery", "PlanningResult", "PlanningSetup",
+    "PlanningQuery",
+    "PlanningResult",
+    "PlanningSetup",
     "protocol_planner",
+    "PlanStep",
 ]
 
 
@@ -86,11 +89,11 @@ class PlanningSetup(MapDefinition):
     tolerance_xy_m: float
     tolerance_theta_deg: float
 
+
 @dataclass
 class PlanningQuery:
     start: FriendlyPose
     target: FriendlyPose
-
 
 
 @dataclass

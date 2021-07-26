@@ -18,6 +18,8 @@ __all__ = ["run_checker"]
 
 Y = TypeVar("Y")
 S = TypeVar("S")
+Params = TypeVar("Params")
+Query = TypeVar("Query")
 
 
 @dataclass
@@ -26,13 +28,14 @@ class CheckerSession:
     scores: List
     responses: List
 
+
 def run_checker(
     cie: dc.ChallengeInterfaceEvaluator,
     protocol: InteractionProtocol,
     *,
     dirname: str,
     K: Type[Y],
-    scoring: Callable[[Y, Any], S],
+    scoring: Callable[[Params, Query, Y, Any], S],
     finalize_scores: Callable[[List[S]], Mapping[str, float]],
 ) -> Dict[str, CheckerSession]:
     agent_ci = ComponentInterface(
@@ -55,7 +58,6 @@ def run_checker(
         K_params = protocol.inputs["set_params"]
         K_query = protocol.inputs["query"]
 
-
         @dataclass
         class Interaction:
             query: K_query
@@ -71,19 +73,20 @@ def run_checker(
         scores = []
 
         episodes = {}
-        for fn in a:
+        for k, fn in enumerate(a):
             responses = []
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
             inside = object_from_ipce(ydata, Data)
             logger.info(fn=fn)
             agent_ci.write_topic_and_expect_zero("set_params", inside.params)
-            for interaction in inside.interactions:
+            for i, interaction in enumerate(inside.interactions):
+                logger.info(f"set {k+1} of {len(a)} - query {i+1} of {len(inside.interactions)}")
                 q = interaction.query
                 r = interaction.gt
                 msg = agent_ci.write_topic_and_expect("query", q, expect="response")
                 response = msg.data
-                scores.append(scoring( r, response))
+                scores.append(scoring(inside.params, q, r, response))
                 responses.append(response)
 
             episodes[fn] = CheckerSession(dataset=inside, scores=scores, responses=responses)
@@ -104,4 +107,3 @@ def run_checker(
         agent_ci.close()
 
     return episodes
-
