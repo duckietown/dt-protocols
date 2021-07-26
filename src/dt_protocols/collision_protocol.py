@@ -1,9 +1,12 @@
-from typing import List, TYPE_CHECKING, Union
+from typing import List, Optional, TYPE_CHECKING, Union
 
 from zuper_typing import dataclass
 
 from aido_schemas import FriendlyPose
 from .basics import InteractionProtocol
+
+if TYPE_CHECKING:
+    from dataclasses import dataclass
 
 __all__ = [
     "protocol_collision_checking",
@@ -15,10 +18,9 @@ __all__ = [
     "CollisionCheckResult",
     "PlacedPrimitive",
     "Point",
+    "PlanningQuery", "PlanningResult", "PlanningSetup",
+    "protocol_planner",
 ]
-
-if TYPE_CHECKING:
-    from dataclasses import dataclass
 
 
 @dataclass
@@ -69,6 +71,45 @@ protocol_collision_checking = InteractionProtocol(
     description="""Collision checking protocol""",
     inputs={"set_params": MapDefinition, "query": CollisionCheckQuery},
     outputs={"response": CollisionCheckResult},
+    language="""
+        (in:set_params ; (in:query ; out:response)*)*
+        """,
+)
+
+
+@dataclass
+class PlanningSetup(MapDefinition):
+    bounds: Rectangle
+    max_linear_velocity_m_s: float
+    max_angular_velocity_deg_s: float
+    max_curvature: float
+    tolerance_xy_m: float
+    tolerance_theta_deg: float
+
+@dataclass
+class PlanningQuery:
+    start: FriendlyPose
+    target: FriendlyPose
+
+
+
+@dataclass
+class PlanStep:
+    duration: float
+    velocity_x_m_s: float
+    angular_velocity_deg_s: float
+
+
+@dataclass
+class PlanningResult:
+    feasible: bool
+    plan: Optional[List[PlanStep]]
+
+
+protocol_planner = InteractionProtocol(
+    description="""Planning protocol""",
+    inputs={"set_params": PlanningSetup, "query": PlanningQuery},
+    outputs={"response": PlanningResult},
     language="""
         (in:set_params ; (in:query ; out:response)*)*
         """,
