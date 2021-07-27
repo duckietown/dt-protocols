@@ -23,6 +23,8 @@ __all__ = [
     "PlanningSetup",
     "protocol_planner",
     "PlanStep",
+    "Appearance",
+    "Motion",
 ]
 
 
@@ -49,9 +51,30 @@ Primitive = Union[Circle, Rectangle]
 
 
 @dataclass
+class Appearance:
+    fillcolor: str
+    rel_zorder: int = 0
+
+
+@dataclass
+class PlanStep:
+    duration: float
+    velocity_x_m_s: float
+    angular_velocity_deg_s: float
+
+
+@dataclass
+class Motion:
+    steps: List[PlanStep]
+    periodic: bool
+
+
+@dataclass
 class PlacedPrimitive:
     pose: FriendlyPose
     primitive: Primitive
+    motion: Optional[Motion]
+    appearance: Optional[Appearance]
 
 
 @dataclass
@@ -84,6 +107,7 @@ protocol_collision_checking = InteractionProtocol(
 class PlanningSetup(MapDefinition):
     bounds: Rectangle
     max_linear_velocity_m_s: float
+    min_linear_velocity_m_s: float
     max_angular_velocity_deg_s: float
     max_curvature: float
     tolerance_xy_m: float
@@ -94,13 +118,6 @@ class PlanningSetup(MapDefinition):
 class PlanningQuery:
     start: FriendlyPose
     target: FriendlyPose
-
-
-@dataclass
-class PlanStep:
-    duration: float
-    velocity_x_m_s: float
-    angular_velocity_deg_s: float
 
 
 @dataclass

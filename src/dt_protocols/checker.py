@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Mapping, Type, TypeVar
-
+import os
+import json
 import yaml
 from zuper_commons.fs import locate_files, read_ustring_from_utf8_file
 from zuper_ipce import object_from_ipce
@@ -38,6 +39,16 @@ def run_checker(
     scoring: Callable[[Params, Query, Y, Any], S],
     finalize_scores: Callable[[List[S]], Mapping[str, float]],
 ) -> Dict[str, CheckerSession]:
+    if "replica" in os.environ:
+        replica = json.loads(os.environ["replica"])
+        index = replica["index"]
+        total = replica["total"]
+    else:
+        index = 0
+        total = 1
+
+    logger.info(env=dict(os.environ), index=index, total=total)
+
     agent_ci = ComponentInterface(
         fnin="/fifos/checker-in",
         fnout="/fifos/checker-out",
@@ -74,6 +85,10 @@ def run_checker(
 
         episodes = {}
         for k, fn in enumerate(a):
+            if k % total != index:
+                msg = f"Skipping k = {k} fn = {fn}"
+                logger.warning(msg)
+                continue
             responses = []
             data = read_ustring_from_utf8_file(fn)
             ydata = yaml.load(data, Loader=yaml.Loader)
