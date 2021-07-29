@@ -28,6 +28,7 @@ install_requires = [
     "duckietown-world-daffy",
     "progressbar",
     "duckietown-challenges-daffy",
+    "matplotlib",
 ]
 
 setup(
