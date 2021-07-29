@@ -11,3 +11,7 @@ logger.debug(f"dt-protocols version {__version__} path {path}")
 from .basics import *
 from .collision_drawing import *
 from .collision_protocol import *
+from .statistics import *
+from .utils import *
+from .visualization import *
+from .checker import *
