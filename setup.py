@@ -27,6 +27,7 @@ install_requires = [
     "PyGeometry-z6",
     "duckietown-world-daffy",
     "progressbar",
+    "duckietown-challenges-daffy",
 ]
 
 setup(
