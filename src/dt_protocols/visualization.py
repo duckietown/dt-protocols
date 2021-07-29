@@ -11,7 +11,7 @@ from progressbar import ProgressBar
 from zuper_commons.fs import write_ustring_to_utf8_file
 from zuper_ipce import IESO, ipce_from_object
 
-from dt_collision.constants import COLOR_BG
+from .constants import COLOR_BG
 from dt_protocols import (
     PlanningQuery,
     PlanningResult,
