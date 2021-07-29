@@ -73,8 +73,8 @@ class Motion:
 class PlacedPrimitive:
     pose: FriendlyPose
     primitive: Primitive
-    motion: Optional[Motion]
-    appearance: Optional[Appearance]
+    motion: Optional[Motion] = None
+    appearance: Optional[Appearance] = None
 
 
 @dataclass
