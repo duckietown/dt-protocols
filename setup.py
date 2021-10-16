@@ -24,11 +24,16 @@ install_requires = [
     "aido-protocols-daffy",
     "termcolor",
     "zuper-nodes-z6>=6.0.37",
+    "zuper-ipce-z6",
+    "zuper-commons-z6",
+    "zuper-typing-z6",
+    "PyYAML",
     "PyGeometry-z6",
     "duckietown-world-daffy",
     "progressbar",
     "duckietown-challenges-daffy",
     "matplotlib",
+    "numpy",
 ]
 
 setup(
