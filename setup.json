@@ -1,0 +1,32 @@
+{
+  "install_requires": [
+    "PyGeometry-z6",
+    "PyYAML",
+    "aido-protocols-daffy",
+    "duckietown-challenges-daffy",
+    "duckietown-world-daffy",
+    "matplotlib",
+    "numpy",
+    "progressbar",
+    "termcolor",
+    "zuper-commons-z6",
+    "zuper-ipce-z6",
+    "zuper-nodes-z6>=6.0.37",
+    "zuper-typing-z6"
+  ],
+  "tests_require": [],
+  "srcdir": "src",
+  "package_name": "dt-protocols-daffy",
+  "entry_points": {
+    "console_scripts": []
+  },
+  "zip_safe": true,
+  "include_package_data": true,
+  "modules": [
+    "dt_protocols"
+  ],
+  "version": "6.2.31",
+  "author": "",
+  "author_email": "",
+  "url": ""
+}

@@ -1,129 +1,274 @@
-version: 2
+%YAML 1.1
+---
+version: '2'
 workflows:
   version: 2
   test:
     jobs:
-      - test-3.8:
-          context: pip-staging
-      #- test-3.6
+    - test-3.8-daffy-stage:
+        context: pip-staging
+        filters:
+          branches:
+            only: /daffy-staging.*/
+    - test-3.8-daffy-prod:
+        context: production
+        filters:
+          branches:
+            ignore: /daffy-staging.*/
 jobs:
-  test-3.6: &test-template
+  test-3.8-daffy-stage:
     environment:
-      COLUMNS: 160
+      COLUMNS: '160'
       # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      PATH: /root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /home/circleci/.local/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      COVER_PACKAGES: dt_protocols,dt_protocols_tests
+      TEST_PACKAGES: dt_protocols_tests
     docker:
-      - image: python:3.6
+    - image: $DOCKER_REGISTRY/circleci/python:3.8
+      auth:
+        username: $DOCKER_USERNAME
+        password: $DOCKER_PASSWORD
     working_directory: ~/repo
     steps:
-      - checkout
-      - run:
-          name: Install Git LFS
-          command: |
-            curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash
-            apt-get update
-            apt-get install -y git-lfs openssh-client
-            git lfs install
-            mkdir -p ~/.ssh
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-            ssh git@github.com git-lfs-authenticate "${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}" download
-            git lfs pull
-      - run:
-          name: Install deps
-          command: |
-            echo PATH=$PATH
-            pip install -q --user --upgrade -r requirements.txt
+    - checkout
+    - run:
+        name: Build statistics
+        command: |
+          mkdir -p build-stats
+          env | sort | tee  build-stats/env.txt
+    - store_artifacts:
+        path: build-stats
+        destination: build-stats
 
-      - run:
-          name: List deps
-          command: |
-            mkdir -p artifacts
-            pip freeze | tee artifacts/pip-freeze.txt
+    - run:
+        name: Install testing deps
+        command: |
+          python3 -m pip install nose coverage pipdeptree rednose
 
-      - run:
-          name: setup.py develop
-          command: |
-            python setup.py develop --prefix ~/.local --no-deps
+    - run:
+        name: Python stats
+        command: |
+          pipdeptree | tee  build-stats/pipdeptree.txt
+          pip list   | sort | tee  build-stats/pip-list.txt
+          pip freeze | sort | tee  build-stats/pip-freeze.txt
 
-      - run:
-          name: Run tests
-          command: |
-            make tests-coverage-single-nocontracts
+    - store_artifacts:
+        path: build-stats
+        destination: build-stats
 
-      - run:
-          name: Notebooks
-          command: |
-            make -C notebooks || true
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="18.09.2"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            curl -L https://github.com/docker/compose/releases/download/1.23.2/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            chmod +x ~/docker-compose
-            mv ~/docker-compose /usr/local/bin/docker-compose
+    - run:
+        name: install
+        command: |
+          python3 -m pip install -e . --user
 
-      - setup_remote_docker
+#    - run:
+#        name: Make docs
+#        command: |
+#          FILE=src/conf.py
+#          mkdir -p out/docs
+#          if test -f "$FILE"; then
+#              sphinx-build src out/docs
+#          fi
+#
+#    - store_artifacts:
+#        path: out/docs
+#        destination: docs
+    - run:
+        background: true
+        name: services
+        command: |
+          TARGET=services
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
+    - run:
+        name: pre-circle-tests
+        command: |
+          TARGET=pre-circle-tests
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
 
-      - run:
-          name: Build docker example
-          command: |
-            find minimal-nodes-stubs
-            make -C minimal-nodes-stubs test-docker-build
-      - run:
-          name: Run docker example
-          command: |
-            make -C minimal-nodes-stubs test-docker-up
 
-      - run:
-          name: Coverage analysis
-          when: always
-          command: |
-            make coverage-report
+    - run:
+        name: dt_protocols_tests
+        command: |-
+          set -euxo pipefail
+          mkdir -p out/test-results
+          xunit_output=$PWD/out/test-results/nose-${CIRCLE_NODE_INDEX}-dt_protocols_tests-xunit.xml
+          nosetests \
+              --rednose --immediate \
+              --cover-tests --with-coverage \
+              --with-xunit --xunit-file=${xunit_output} \
+              --cover-package=${COVER_PACKAGES} \
+              dt_protocols_tests
+        when: always
+    - run:
+        name: post-circle-tests
+        command: |
+          TARGET=post-circle-tests
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
 
-      - run:
-          name: Coveralls submission
-          when: always
-          command: |
-            make coverage-coveralls
+    - store_test_results:
+        path: out/test-results
 
-      - run:
-          name: Create JUnit output
-          when: always
-          command: |
-            make junit
+    - run:
+        name: Coverage report
+        when: always
+        command: |
+          coverage combine || true
+          coverage html -d out/coverage/${CIRCLE_NODE_INDEX}
+          coverage xml
 
-      - test-results-store:
-          path: out-comptests/junit
 
-      - store_artifacts:
-          path: out-comptests/duckietown_world_tests
-          destination: duckietown_world_tests
+    - store_artifacts:
+        path: out/coverage
+        destination: coverage
 
-      - store_artifacts:
-          path: artifacts
-          destination: artifacts
+    - store_artifacts:
+        path: out/tests
+        destination: tests
 
-      - store_artifacts:
-          path: out_coverage
-          destination: coverage
-
-      - store_artifacts:
-          path: notebooks
-          destination: notebooks
-
-  test-3.7:
-    <<: *test-template
+    - run:
+        name: CodeCov
+        when: always
+        command: |
+          bash <(curl -s https://codecov.io/bash)
+    resource_class: medium
+  test-3.8-daffy-prod:
+    environment:
+      COLUMNS: '160'
+      # default is /usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      PATH: /home/circleci/.local/bin:/root/.local/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      COVER_PACKAGES: dt_protocols,dt_protocols_tests
+      TEST_PACKAGES: dt_protocols_tests
     docker:
-      - image: python:3.7
+    - image: $DOCKER_REGISTRY/circleci/python:3.8
+      auth:
+        username: $DOCKER_USERNAME
+        password: $DOCKER_PASSWORD
+    working_directory: ~/repo
+    steps:
+    - checkout
+    - run:
+        name: Build statistics
+        command: |
+          mkdir -p build-stats
+          env | sort | tee  build-stats/env.txt
+    - store_artifacts:
+        path: build-stats
+        destination: build-stats
 
-  test-3.8:
-    <<: *test-template
-    docker:
-      - image: python:3.8
+    - run:
+        name: Install testing deps
+        command: |
+          python3 -m pip install nose coverage pipdeptree rednose
+
+    - run:
+        name: Python stats
+        command: |
+          pipdeptree | tee  build-stats/pipdeptree.txt
+          pip list   | sort | tee  build-stats/pip-list.txt
+          pip freeze | sort | tee  build-stats/pip-freeze.txt
+
+    - store_artifacts:
+        path: build-stats
+        destination: build-stats
+
+    - run:
+        name: install
+        command: |
+          python3 -m pip install -e . --user
+
+#    - run:
+#        name: Make docs
+#        command: |
+#          FILE=src/conf.py
+#          mkdir -p out/docs
+#          if test -f "$FILE"; then
+#              sphinx-build src out/docs
+#          fi
+#
+#    - store_artifacts:
+#        path: out/docs
+#        destination: docs
+    - run:
+        background: true
+        name: services
+        command: |
+          TARGET=services
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
+    - run:
+        name: pre-circle-tests
+        command: |
+          TARGET=pre-circle-tests
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
+
+
+    - run:
+        name: dt_protocols_tests
+        command: |-
+          set -euxo pipefail
+          mkdir -p out/test-results
+          xunit_output=$PWD/out/test-results/nose-${CIRCLE_NODE_INDEX}-dt_protocols_tests-xunit.xml
+          nosetests \
+              --rednose --immediate \
+              --cover-tests --with-coverage \
+              --with-xunit --xunit-file=${xunit_output} \
+              --cover-package=${COVER_PACKAGES} \
+              dt_protocols_tests
+        when: always
+    - run:
+        name: post-circle-tests
+        command: |
+          TARGET=post-circle-tests
+          if make -n $TARGET ; then
+              make $TARGET
+          else
+              echo "Target $TARGET not defined"
+          fi
+
+    - store_test_results:
+        path: out/test-results
+
+    - run:
+        name: Coverage report
+        when: always
+        command: |
+          coverage combine || true
+          coverage html -d out/coverage/${CIRCLE_NODE_INDEX}
+          coverage xml
+
+
+    - store_artifacts:
+        path: out/coverage
+        destination: coverage
+
+    - store_artifacts:
+        path: out/tests
+        destination: tests
+
+    - run:
+        name: CodeCov
+        when: always
+        command: |
+          bash <(curl -s https://codecov.io/bash)
+    resource_class: medium
+
+# sigil 8f958599fcc1b0a453978b89d8a17c57
