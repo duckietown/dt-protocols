@@ -80,7 +80,3 @@ coverage-coveralls:
 
 black:
 	black -l 110  src
-
-
-define-challenge:
-	dts challenges define --config mooc-collision-check.challenge.yaml --no-cache
