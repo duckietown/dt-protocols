@@ -21,7 +21,7 @@ version = get_version(filename="src/dt_protocols/__init__.py")
 
 line = "daffy"
 install_requires = [
-    "aido-protocols-daffy",
+    f"aido-protocols-{line}",
     "termcolor",
     "zuper-nodes-z6>=6.0.37",
     "zuper-ipce-z6",
@@ -29,9 +29,9 @@ install_requires = [
     "zuper-typing-z6",
     "PyYAML",
     "PyGeometry-z6",
-    "duckietown-world-daffy",
+    f"duckietown-world-{line}",
     "progressbar",
-    "duckietown-challenges-daffy",
+    f"duckietown-challenges-{line}",
     "matplotlib",
     "numpy",
 ]
